@@ -1,6 +1,4 @@
 from flask import Flask, render_template, request, redirect,jsonify, url_for, flash
-app = Flask(__name__)
-
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Restaurant, MenuItem
@@ -8,6 +6,19 @@ from database_setup import Base, Restaurant, MenuItem
 # new imports
 from flask import session as login_session
 import random, string
+
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import FlowExchangeError
+import httplib2
+import json
+from flask import make_response
+import requests
+
+app = Flask(__name__)
+
+
+CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web']['client_id']
+APPLICATION_NAME = 'restaurant menu application'
 
 
 #Connect to Database and create database session
@@ -24,7 +35,18 @@ session = DBSession()
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in xrange(32))
     login_session['state'] = state
-    return 'The current session state is %s' %login_session['state']
+    # return 'The current session state is %s' %login_session['state']
+    return render_template('login.html')
+
+
+@app.route('/gconnect', methods = ['POST'])
+def gconnect():
+    # validate state tokens
+    if requests..arg.get('state') != login_session['state']:
+        response = make_response(json.dumps('Invalid state parameter'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    code = request.data
 
 
 #JSON APIs to view Restaurant Information
